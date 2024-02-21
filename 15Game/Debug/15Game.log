@@ -1,3 +1,0 @@
-﻿  Solver.cpp
-C:\Users\minec\Desktop\Пятнашки\15Game\15Game\Solver.cpp(473): warning C4715: Solver::solve: значение возвращается не при всех путях выполнения
-  15Game.vcxproj -> C:\Users\minec\Desktop\Пятнашки\15Game\Debug\15Game.exe
