@@ -3,9 +3,9 @@
 #include <string>
 #include "Board.h"
 
-board::board(): size_x(0), size_y (0), zero_x (0), zero_y (0), depth (0), manhatten(0), board_field(nullptr), parent(nullptr)
+board::board() : size_x(0), size_y(0), zero_x(0), zero_y(0), depth(0), manhatten(0), board_field(nullptr), parent(nullptr)
 {
-	
+
 }
 
 board::board(int** arrayp, int x, int y)
@@ -13,7 +13,7 @@ board::board(int** arrayp, int x, int y)
 	size_x = x;
 	size_y = y;
 
-	board_field = new int* [size_y]; 
+	board_field = new int* [size_y];
 	for (int i = 0; i < size_y; i++)
 	{
 		board_field[i] = new int[size_x];
@@ -38,7 +38,7 @@ board::board(int** arrayp, int x, int y)
 	arrayp = nullptr;
 }
 
-board::board(const board& brd): size_x(brd.size_x), size_y(brd.size_y), zero_x(brd.zero_x), zero_y(brd.zero_y), depth(brd.depth), manhatten(brd.manhatten), parent(brd.parent)
+board::board(const board& brd) : size_x(brd.size_x), size_y(brd.size_y), zero_x(brd.zero_x), zero_y(brd.zero_y), depth(brd.depth), manhatten(brd.manhatten), parent(brd.parent)
 {
 
 	if (brd.board_field)
@@ -75,8 +75,8 @@ void board::create_random(board& brd)
 	{
 		for (int j = 0; j < brd.size_x; j++)
 		{
-			int R1 = std::rand()% brd.size_x;
-			int R2 = std::rand()% brd.size_y;
+			int R1 = std::rand() % brd.size_x;
+			int R2 = std::rand() % brd.size_y;
 			int R3 = std::rand() % brd.size_x;
 			int R4 = std::rand() % brd.size_y;
 			int temp = brd.board_field[R2][R1];
@@ -133,7 +133,7 @@ int board::hamming()
 			}
 		}
 	}
-	
+
 	return counter;
 }
 
@@ -186,7 +186,7 @@ int board::manhattan(const board& goal)
 
 		}
 	}
-	
+
 	return M_sum;
 }
 
@@ -195,7 +195,7 @@ bool board::is_solvable()
 	int counter = hamming();
 
 	counter = (counter + 1 + zero_y);
-	if (counter%2)
+	if (counter % 2)
 	{
 		if ((size_y + size_x) % 2)
 		{
@@ -210,7 +210,7 @@ bool board::is_solvable()
 	{
 		return true;
 	}
-	
+
 }
 
 int board::size()
@@ -276,9 +276,10 @@ std::string board::to_string(board& brd) // 1 перевода в строку -
 //	return str;
 //}
 
+
 bool board::operator == (const board& brd) const
 {
-	if(&brd != nullptr)
+	if (&brd != nullptr)
 	{
 		if (size_x != brd.size_x && size_y != brd.size_y)
 		{
@@ -358,7 +359,7 @@ board& board::operator = (const board& brd)
 
 std::ostream& operator<<(std::ostream& os, const board& brd)
 {
-	os <<  "\n";
+	os << "\n";
 
 	for (int i = 0; i < brd.size_y; i++)
 	{
