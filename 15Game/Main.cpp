@@ -6,7 +6,7 @@
 
 #include "Solver.h"
 
-int main(int argc, char**argv)
+int main(int argc, char **argv)
 {
     std::srand(std::time(nullptr));
     int size_x, size_y;
