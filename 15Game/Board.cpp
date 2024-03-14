@@ -1,369 +1,262 @@
-#include "Board.h"
-#include <cstdlib>
 #include <iomanip>
+#include <cstdlib>
 #include <string>
+#include <random>
+#include <vector>
+#include <cmath>
+#include "Board.h"
 
-board::board()
-    : size_x(0), size_y(0), zero_x(0), zero_y(0), depth(0), manhatten(0), board_field(nullptr), parent(nullptr)
+board::board(std::vector <int> arrayp, int x, int y)
 {
+	size_x = x;
+	size_y = y;
+
+	board_field = arrayp;
+
+	int size = board_field.size();
+	
+	for (int i = 0; i < size; i++)
+	{
+		if (board_field.at(i) == 0)
+		{
+			zero_x = i % size_x;
+			zero_y = i / size_x;
+		}
+	}
+
+	depth = 0;
+	manhatten = 0;
+
 }
 
-board::board(int **arrayp, int x, int y)
-{
-    size_x = x;
-    size_y = y;
-
-    board_field = new int *[size_y];
-    for (int i = 0; i < size_y; i++)
-    {
-        board_field[i] = new int[size_x];
-    }
-
-    for (int i = 0; i < size_y; i++)
-    {
-        for (int j = 0; j < size_x; j++)
-        {
-            board_field[i][j] = arrayp[i][j];
-            if (board_field[i][j] == 0)
-            {
-                zero_x = j;
-                zero_y = i;
-            }
-        }
-    }
-
-    depth = 0;
-    manhatten = 0;
-
-    arrayp = nullptr;
-}
-
-board::board(const board &brd)
-    : size_x(brd.size_x), size_y(brd.size_y), zero_x(brd.zero_x), zero_y(brd.zero_y), depth(brd.depth),
-      manhatten(brd.manhatten), parent(brd.parent)
+board::board(const board& brd): size_x(brd.size_x), size_y(brd.size_y), zero_x(brd.zero_x), zero_y(brd.zero_y), depth(brd.depth), manhatten(brd.manhatten), parent(brd.parent), board_field(brd.board_field)
 {
 
-    if (brd.board_field)
-    {
-        board_field = new int *[size_y];
-        for (int i = 0; i < size_y; i++)
-        {
-            board_field[i] = new int[size_x];
-        }
-
-        for (int i = 0; i < size_y; i++)
-        {
-            for (int j = 0; j < size_x; j++)
-            {
-                board_field[i][j] = brd.board_field[i][j];
-            }
-        }
-    }
 }
 
-board::~board()
+void board::create_random(board& brd)
 {
-    for (int i = 0; i < size_y; i++)
-    {
-        delete[] board_field[i];
-    }
-    delete[] board_field;
-    board_field = nullptr;
+	int size = brd.size();
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> dist(0, size-1);
+
+	for (int i = 0; i < size; i++)
+	{
+		std::swap(brd.board_field.at(i), brd.board_field.at(dist(gen)));
+	}
+
+	for (int i = 0; i < size; i++)
+	{
+		if (brd.board_field.at(i) == 0)
+		{
+			brd.zero_x = i%brd.size_x;
+			brd.zero_y = i/brd.size_x;
+			break;
+		}
+	}
+
 }
 
-void board::create_random(board &brd)
+bool board::is_goal(const board& goal)
 {
-    for (int i = 0; i < brd.size_y; i++)
-    {
-        for (int j = 0; j < brd.size_x; j++)
-        {
-            int R1 = std::rand() % brd.size_x;
-            int R2 = std::rand() % brd.size_y;
-            int R3 = std::rand() % brd.size_x;
-            int R4 = std::rand() % brd.size_y;
-            int temp = brd.board_field[R2][R1];
-            brd.board_field[R2][R1] = brd.board_field[R4][R3];
-            brd.board_field[R4][R3] = temp;
-        }
-    }
+	int size = goal.size();
 
-    for (int i = 0; i < brd.size_y; i++)
-    {
-        for (int j = 0; j < brd.size_x; j++)
-        {
-            if (brd.board_field[i][j] == 0)
-            {
-                brd.zero_x = j;
-                brd.zero_y = i;
-            }
-        }
-    }
+	for (int i = 0; i < size; i++)
+	{
+		if (board_field.at(i) != goal.board_field.at(i))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
-bool board::is_goal(const board &goal)
+int board::inversions()
 {
-    for (int i = 0; i < size_y; i++)
-    {
-        for (int j = 0; j < size_x; j++)
-        {
-            if (board_field[i][j] != goal.board_field[i][j])
-            {
-                return false;
-            }
-        }
-    }
-    return false;
+	int counter = 0;
+	int size = this->size();
+
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = i+1; j < size; j++)
+		{
+			if (this->board_field.at(i) > this->board_field.at(j) && this->board_field.at(i) != 0 && this->board_field.at(j) != 0)
+			{
+				counter++;
+			}
+		}
+	}
+
+	return counter;
 }
 
-int board::hamming()
+int board::manhattan(const board& goal)
 {
-    int counter = 0;
+	int x_my = -1;
+	int y_my = -1;
+	int x_goal = -1;
+	int y_goal = -1;
+	int M_sum = 0;
 
-    std::string str = to_string(*this);
+	int size = goal.size();
+	bool check = false;
+	int block;
 
-    for (std::string::size_type i = 0; i < str.size(); i++)
-    {
-        if (str[i] != '0' && std::isdigit(str[i]))
-        {
-            for (std::string::size_type j = i; j < str.size(); j++)
-            {
-                if (str[i] > str[j] && std::isdigit(str[j]) && str[j] != '0')
-                {
-                    counter++;
-                }
-            }
-        }
-    }
+	for (int i = 0; i < size; i++)
+	{
+		check = false;
+		if (goal.board_field.at(i) != 0)
+		{
+			block = goal.board_field.at(i);
+		}
+		else
+		{
+			continue;
+		}
 
-    return counter;
+		for (int j = 0; j < size; j++)
+		{
+			if (block == this->board_field.at(j))
+			{
+				x_my = j % this->size_x;
+				y_my = j / this->size_x;
+				x_goal = i % goal.size_x;
+				y_goal = i / goal.size_y;
+				M_sum = M_sum + std::fabs(x_my - x_goal) + std::fabs(y_my - y_goal);
+				check = true;
+			}
+			if (check == true)
+			{
+				break;
+			}
+		}
+	}
+	
+	return M_sum;
 }
 
-int board::manhattan(const board &goal)
-{
-    int x_my = -1;
-    int y_my = -1;
-    int x_goal = -1;
-    int y_goal = -1;
-    int M_sum = 0;
-
-    for (int i = 0; i < goal.size_y; i++)
-    {
-        for (int j = 0; j < goal.size_x; j++)
-        {
-            bool check = false;
-            int block;
-            if (goal.board_field[i][j] != 0)
-            {
-                block = goal.board_field[i][j];
-            }
-            else
-            {
-                continue;
-            }
-
-            for (int ii = 0; ii < size_y; ii++)
-            {
-                for (int jj = 0; jj < size_x; jj++)
-                {
-                    if (block == board_field[ii][jj])
-                    {
-                        x_my = jj;
-                        y_my = ii;
-                        x_goal = j;
-                        y_goal = i;
-                        M_sum =
-                            M_sum + sqrt((x_my - x_goal) * (x_my - x_goal)) + sqrt((y_my - y_goal) * (y_my - y_goal));
-                        check = true;
-                    }
-                    if (check == true)
-                    {
-                        break;
-                    }
-                }
-                if (check == true)
-                {
-                    break;
-                }
-            }
-        }
-    }
-
-    return M_sum;
-}
 
 bool board::is_solvable()
 {
-    int counter = hamming();
-
-    counter = (counter + 1 + zero_y);
-    if (counter % 2)
-    {
-        if ((size_y + size_x) % 2)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    else
-    {
-        return true;
-    }
+	int counter = inversions();
+		// check for column number parity:
+		if (this->size_x % 2) // odd
+		{
+			if (!(counter % 2))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else //even
+		{
+			int rownum = std::fabs(this->zero_y - this->size_y);
+			if (counter % 2 == rownum % 2)
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
 }
 
-int board::size()
+
+int board::size() const
 {
-    return (size_x * size_y);
+	return (size_x * size_y);
 }
 
-std::string board::to_string(board &brd) // 1-st - simple conversion to string
+std::string board::to_string(board& brd) // 1 перевода в строку - простой
 {
-    std::string str;
-    for (int i = 0; i < size_y; i++)
-    {
-        for (int j = 0; j < size_x; j++)
-        {
-            str += std::to_string(brd.board_field[i][j]);
-            str += ", ";
-        }
-        str += "\n";
-    }
-    return str;
+	std::string str;
+	int size = brd.size();
+
+	for (int i = 0; i < size; i++)
+	{
+		str += std::to_string(brd.board_field.at(i));
+		str += ", ";
+		if (!(i % brd.size_x))
+		{
+			str += "\n";
+		}
+	}
+
+	return str;
 }
 
-// std::string board::to_string(board& brd) // 2-nd - snake conversion to string
-//{
-//	std::string str;
-//
-//	if (size_y > 2 && size_x > 2)
-//	{
-//		for (int i = 0; i < size_y; i++)
-//		{
-//			if (i % 2 == 0)
-//			{
-//				for (int j = 0; j < size_x; j++)
-//				{
-//					str += std::to_string(brd.board_field[i][j]);
-//					str += ", ";
-//				}
-//				str += "\n";
-//			}
-//			else
-//			{
-//				for (int j = size_x - 1; j >= 0; j--)
-//				{
-//					str += std::to_string(brd.board_field[i][j]);
-//					str += ", ";
-//				}
-//				str += "\n";
-//			}
-//		}
-//	}
-//	else
-//	{
-//		for (int i = 0; i < size_y; i++)
-//			{
-//				for (int j = 0; j < size_x; j++)
-//				{
-//					str += std::to_string(brd.board_field[i][j]);
-//					str += ", ";
-//				}
-//				str += "\n";
-//			}
-//	}
-//	return str;
-// }
-
-bool board::operator==(const board &brd) const
+bool board::operator == (const board& brd) const
 {
-    if (&brd != nullptr)
-    {
-        if (size_x != brd.size_x && size_y != brd.size_y)
-        {
-            return false;
-        }
-        else
-        {
-            for (int i = 0; i < size_y; i++)
-            {
-                for (int j = 0; j < size_x; j++)
-                {
-                    if (board_field[i][j] != brd.board_field[i][j])
-                    {
-                        return false;
-                    }
-                }
-            }
-        }
+	int size = brd.size();
 
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	if (size_x != brd.size_x || size_y != brd.size_y)
+		{
+			return false;
+		}
+	else
+		{
+			for (int i = 0; i < size; i++)
+			{
+				if (board_field.at(i) != brd.board_field.at(i))
+				{
+					return false;
+				}
+			}
+		}
+
+	return true;
 }
 
-bool board::operator!=(const board &brd) const
+bool board::operator != (const board& brd) const
 {
-    if (size_x != brd.size_x && size_y != brd.size_y)
-    {
-        return true;
-    }
-    else
-    {
-        for (int i = 0; i < size_y; i++)
-        {
-            for (int j = 0; j < size_x; j++)
-            {
-                if (board_field[i][j] != board_field[i][j])
-                {
-                    return true;
-                }
-            }
-        }
-    }
+	int size = brd.size();
 
-    return false;
+	if (size_x != brd.size_x && size_y != brd.size_y)
+	{
+		return true;
+	}
+	else
+	{
+		for (int i = 0; i < size; i++)
+		{
+			if (board_field.at(i) != brd.board_field.at(i))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
-board &board::operator=(const board &brd)
+board& board::operator = (const board& brd)
 {
-    size_x = brd.size_x;
-    size_y = brd.size_y;
-    zero_x = brd.zero_x;
-    zero_y = brd.zero_y;
-    board_field = new int *[size_y];
-
-    for (int i = 0; i < size_y; i++)
-    {
-        board_field[i] = new int[size_x];
-    }
-
-    for (int i = 0; i < size_y; i++)
-    {
-        for (int j = 0; j < size_x; j++)
-        {
-            board_field[i][j] = brd.board_field[i][j];
-        }
-    }
-
-    return *this;
+	size_x = brd.size_x;
+	size_y = brd.size_y;
+	zero_x = brd.zero_x;
+	zero_y = brd.zero_y;
+	board_field = brd.board_field;
+	return *this;
 }
 
-std::ostream &operator<<(std::ostream &os, const board &brd)
+std::ostream& operator<<(std::ostream& os, const board& brd)
 {
-    os << "\n";
+	int size = brd.size();
 
-    for (int i = 0; i < brd.size_y; i++)
-    {
-        for (int j = 0; j < brd.size_x; j++)
-        {
-            os << std::setfill('0') << std::setw(3) << brd.board_field[i][j] << " ";
-        }
-        os << "\n";
-    }
-    return os;
+	os <<  "\n";
+	for (int i = 0; i < size; i++)
+	{
+		if (!(i % brd.size_x) && i != 0)
+		{
+			os << "\n";
+		}
+		os << std::setfill('0') << std::setw(3) << brd.board_field.at(i) << " ";
+		
+	}
+	return os;
 }

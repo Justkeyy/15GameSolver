@@ -1,29 +1,24 @@
 #pragma once
-#include "Node.h"
+#include <forward_list>
+
+#include "Board.h"
 
 class Solution
 {
-    Node Head;
-    Node Tail;
-    size_t m_size;
-    //////////////////////////////////////////
-  public:
-    Solution();
-    Solution(const Solution &sol);
-    Solution(Solution &&sol);
-    ~Solution();
+	std::forward_list <board*> m_list;
+	size_t m_size;
+//////////////////////////////////////////
+public:
+	Solution() = default;
+	Solution(const Solution& sol) = default;
+	Solution(Solution&& sol) = default;
+	~Solution() = default;
 
-    int Size() const;
-    void AddToHead(const board &brd);
-    void AddToTail(const board &brd);
-    bool RemoveOne(const board &brd);
-    void RemoveAll(const board &brd);
-    void moves() const;
+	int Size();
+	void moves();
 
-    Solution &operator=(const Solution &sol);
-    Solution &operator=(Solution &&sol);
+	Solution& operator = (const Solution& sol);
 
-    friend class Node;
-    friend class Solver;
-    friend std::ostream &operator<<(std::ostream &os, const Solution &sol);
+	friend std::ostream& operator<<(std::ostream& os, const Solution& sol);
+	friend class Solver;
 };

@@ -1,36 +1,36 @@
 #pragma once
 #include <iostream>
+#include <vector>
 
 class board
 {
-	int** board_field; // Массив поля
-	int size_x; // Ширина поля 
-	int size_y; // Высота поля
-	int zero_x; // Координаты нуля по x
-	int zero_y; // Координаты нуля по y
-	board* parent; // Ссылка на родительский узел
-	int depth; // глубина поиска 
-	int manhatten; // Манхэттенское расстояние
+	std::vector <int> board_field; // Field array
+	int size_x = 0; // X width
+	int size_y = 0; // Y width
+	int zero_x = 0; // Coordinates of zero by x
+	int zero_y = 0; // Coordinates of zero by y
+	board* parent = nullptr; // Link to parent
+	int depth = 0; // Search depth 
+	int manhatten = 0; // Manhatten distance
 
 public:
-	board(); // Конструктор по умолчанию
-	board(int** arrayp, int x, int y); // Конструктор, принимающий массив
-	~board(); // Деструктор, осовбождающий память в heap
-	board(const board& brd); // Конструктор копирования
+	board() = default; // Default constructor
+	board(std::vector <int> board, int x, int y); // Constructor with vector
+	~board() = default; // Destructor
+	board(const board& brd); // Copy constructor
 private:
-	static void create_random(board& brd); // Метод, генерирующий состояние доски
-	bool is_solvable(); // Можно ли решить текущую расстановку
-	std::string to_string(board& brd);
-	int manhattan(const board& goal); // Метод, возвращающий сумму М. расстояний между блоками и целью
-	int size(); // Метод, возвращающий размер доски
-	int hamming(); // Метод, возвращающий количество блоков не на своих местах
-	bool is_goal(const board& goal); // Является ли текущая доска целью
+	static void create_random(board& brd); // Random board generator
+	bool is_solvable(); // Solution check 
+	std::string to_string(board& brd); // Convert board to string
+	int manhattan(const board& goal); // Find manhatten distance
+	int size() const; // Size of the board
+	int inversions(); // number of inversions
+	bool is_goal(const board& goal); // is current board == goal board?
 	board& operator = (const board& brd);
 	bool operator == (const board& brd) const;
 	bool operator != (const board& brd) const;
-	friend class Node;
-	friend class Solution;
-	friend class Solver;
+
 	friend std::ostream& operator<<(std::ostream& os, const board& brd);
+	friend class Solver;
 };
 

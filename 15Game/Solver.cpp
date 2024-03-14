@@ -1,501 +1,520 @@
 #include "Solver.h"
-
-// #define debug
-
-// Constructors
+#include <vector>
+//#define debug
 
 Solver::Solver()
 {
-    GoalBoard = nullptr;
-    Openlist = new Solution;
-    Closedlist = new Solution;
-    Waylist = new Solution;
+	GoalBoard = nullptr;
+	Openlist = new Solution;
+	Closedlist = new Solution;
+	Waylist = new Solution;
 }
 
-// Destructor
+// Методы 
 
-Solver::~Solver()
+std::vector<int>* Solver::debuging(const int X_width, const int Y_width) // this is for debugging
 {
-    while (Openlist->Head.pNext != &Openlist->Tail)
-    {
-        delete Openlist->Head.pNext;
-    }
+	std::vector <int>* debbrd = new std::vector <int>;
+	debbrd->resize(X_width * Y_width);
 
-    while (Closedlist->Head.pNext != &Closedlist->Tail)
-    {
-        delete Closedlist->Head.pNext;
-    }
+	/*debbrd->at(0) = 3;
+	debbrd->at(1) = 0;
+	debbrd->at(2) = 2;
+	debbrd->at(3) = 1;*/
 
-    while (Waylist->Head.pNext != &Waylist->Tail)
-    {
-        delete Waylist->Head.pNext;
-    }
+	/*debbrd->at(0) = 1;
+	debbrd->at(1) = 2;
+	debbrd->at(2) = 3;
+	debbrd->at(3) = 4;
+	debbrd->at(4) = 5;
+	debbrd->at(5) = 0;
+	debbrd->at(6) = 6;
+	debbrd->at(7) = 7;
+	debbrd->at(8) = 8;*/
+
+	/*debbrd->at(0) = 1;
+	debbrd->at(1) = 2;
+	debbrd->at(2) = 3;
+	debbrd->at(3) = 4;
+	debbrd->at(4) = 5;
+	debbrd->at(5) = 0;
+	debbrd->at(6) = 7;
+	debbrd->at(7) = 8;
+	debbrd->at(8) = 6;*/
+
+	debbrd->at(0) = 0;
+	debbrd->at(1) = 2;
+	debbrd->at(2) = 5;
+	debbrd->at(3) = 1;
+	debbrd->at(4) = 3;
+	debbrd->at(5) = 4;
+
+	return debbrd;
 }
 
-// Methods
-
-Solution Solver::solve(int **InitialDesk, const int X_width, const int Y_width, Solver solution)
+board* Solver::LeftNeighbour(board* pointer, board* OpenP, Solver* solution)
 {
-    ////////////////////////////////////////////////// Set goal board
-    solution.GoalBoard = new board(InitialDesk, X_width, Y_width);
-    ////////////////////////////////////////////////////////////////////////
-#ifdef debug
-    int **ppk = new int *[Y_width];
-    for (int i = 0; i < Y_width; i++)
-    {
-        ppk[i] = new int[X_width];
-    }
+	std::swap(pointer->board_field.at(pointer->zero_y * pointer->size_x + pointer->zero_x),
+	pointer->board_field.at(pointer->zero_y * pointer->size_x + pointer->zero_x - 1));
+	pointer->zero_x = pointer->zero_x - 1;
+	pointer->manhatten = pointer->manhattan(*solution->GoalBoard);
+	return pointer;
+}
 
-    // ppk[0][0] = 3;
-    // ppk[0][1] = 0;
-    // ppk[1][0] = 1;
-    // ppk[1][1] = 2;
+board* Solver::RightNeighbour(board* pointer, board* OpenP, Solver* solution)
+{
+	std::swap(pointer->board_field.at(pointer->zero_y * pointer->size_x + pointer->zero_x),
+	pointer->board_field.at(pointer->zero_y * pointer->size_x + pointer->zero_x + 1));
+	pointer->zero_x = pointer->zero_x + 1;
+	pointer->manhatten = pointer->manhattan(*solution->GoalBoard);
+	return pointer;
+}
 
-    ppk[0][0] = 1;
-    ppk[0][1] = 2; // this is for debugging
-    ppk[0][2] = 3;
-    ppk[1][0] = 4;
-    ppk[1][1] = 0;
-    ppk[1][2] = 5;
-    ppk[2][0] = 7;
-    ppk[2][1] = 8;
-    ppk[2][2] = 6;
+board* Solver::UpNeighbour(board* pointer, board* OpenP, Solver* solution)
+{
+	std::swap(pointer->board_field.at(pointer->zero_y * pointer->size_x + pointer->zero_x),
+	pointer->board_field.at((pointer->zero_y - 1) * pointer->size_x + pointer->zero_x));
+	pointer->zero_y = pointer->zero_y - 1;
+	pointer->manhatten = pointer->manhattan(*solution->GoalBoard);
+	return pointer;
+}
 
-    // ppk[0][0] = 1;
-    // ppk[0][1] = 4;
-    // ppk[1][0] = 3;
-    // ppk[1][1] = 2;
-    // ppk[2][0] = 5;
-    // ppk[2][1] = 0;
+board* Solver::DownNeighbour(board* pointer, board* OpenP, Solver* solution)
+{
+	std::swap(pointer->board_field.at(pointer->zero_y * pointer->size_x + pointer->zero_x),
+	pointer->board_field.at((pointer->zero_y + 1) * pointer->size_x + pointer->zero_x));
+	pointer->zero_y = pointer->zero_y + 1;
+	pointer->manhatten = pointer->manhattan(*solution->GoalBoard);
+	return pointer;
+}
 
-    board *Initial = new board(ppk, X_width, Y_width);
+void Solver::NeighbourFound(board* OpenP, board* PLeft, board* PRight, board* PDown, board* PUp)
+{
+	if (OpenP->zero_y == OpenP->size_y - 1) // lower edge
+	{
+		if (OpenP->zero_x == OpenP->size_x - 1) // right lower corner
+		{
+			PLeft = this->LeftNeighbour(PLeft, OpenP, this);
+			PUp = this->UpNeighbour(PUp,  OpenP, this);
+			//////////////////////////////////////////////////////////
+			delete PDown;
+			delete PUp;
+		}
+
+		else if (OpenP->zero_x == 0) // left lower corner
+		{
+			PRight = this->RightNeighbour(PRight, OpenP, this);
+			PUp = this->UpNeighbour(PUp, OpenP, this);
+			/////////////////////////////////////////////////////////
+			delete PLeft;
+			delete PDown;
+		}
+
+		else // lower midle
+		{
+			PLeft = this->LeftNeighbour(PLeft, OpenP, this);
+			PRight = this->RightNeighbour(PRight, OpenP, this);
+			PUp = this->UpNeighbour(PUp, OpenP, this);
+			/////////////////////////////////////////////////////////
+			delete PDown;
+		}
+
+	}
+
+	else if (OpenP->zero_y == 0) // upper edge
+	{
+		if (OpenP->zero_x == OpenP->size_x - 1) // right upper corner
+		{
+			PLeft = this->LeftNeighbour(PLeft, OpenP, this);
+			PDown = this->DownNeighbour(PDown, OpenP, this);
+			/////////////////////////////////////////////////////////
+			delete PUp;
+			delete PRight;
+		}
+
+		else if (OpenP->zero_x == 0) // left upper corner
+		{
+			PRight = this->RightNeighbour(PRight, OpenP, this);
+			PDown = this->DownNeighbour(PDown, OpenP, this);
+			/////////////////////////////////////////////////////////
+			delete PUp;
+			delete PLeft;
+		}
+
+		else // upper midle
+		{
+			PLeft = this->LeftNeighbour(PLeft, OpenP, this);
+			PRight = this->RightNeighbour(PRight, OpenP, this);
+			PDown = this->DownNeighbour(PDown, OpenP, this);
+			/////////////////////////////////////////////////////////
+			delete PUp;
+		}
+
+	}
+
+	else // left edge + right edge + free position
+	{
+		if (OpenP->zero_x == OpenP->size_x - 1) // right edge
+		{
+			PLeft = this->LeftNeighbour(PLeft, OpenP, this);
+			PUp = this->UpNeighbour(PUp, OpenP, this);
+			PDown = this->DownNeighbour(PDown, OpenP, this);
+			/////////////////////////////////////////////////////////
+			delete PRight;
+		}
+
+		else if (OpenP->zero_x == 0) // left edge
+		{
+			PRight = this->RightNeighbour(PRight, OpenP, this);
+			PUp = this->UpNeighbour(PUp, OpenP, this);
+			PDown = this->DownNeighbour(PDown, OpenP, this);
+			/////////////////////////////////////////////////////////
+			delete PLeft;
+		}
+
+		else // free position
+		{
+			PLeft = this->LeftNeighbour(PLeft, OpenP, this);
+			PRight = this->RightNeighbour(PRight, OpenP, this);
+			PUp = this->UpNeighbour(PUp, OpenP, this);
+			PDown = this->DownNeighbour(PDown, OpenP, this);
+		}
+	}
+
+}
+
+void Solver::SetParent(board* PLeft, board* PRight, board* PDown, board* PUp)
+{
+	if (PRight != nullptr)
+	{
+		PRight->parent = *this->Closedlist->m_list.begin();
+		PRight->depth = PRight->parent->depth + 1;
+		std::cout << *PRight << "\n"; // cout all neighbours 
+	}
+	if (PLeft != nullptr)
+	{
+		PLeft->parent = *this->Closedlist->m_list.begin();
+		PLeft->depth = PLeft->parent->depth + 1;
+		std::cout << *PLeft << "\n";
+	}
+	if (PUp != nullptr)
+	{
+		PUp->parent = *this->Closedlist->m_list.begin();
+		PUp->depth = PUp->parent->depth + 1;
+		std::cout << *PUp << "\n";
+	}
+	if (PDown != nullptr)
+	{
+		PDown->parent = *this->Closedlist->m_list.begin();
+		PDown->depth = PDown->parent->depth + 1;
+		std::cout << *PDown << "\n";
+	}
+}
+
+void Solver::ClosestBoards(board* PLeft, board* PRight, board* PDown, board* PUp)
+{
+	std::forward_list <board*>::iterator itr = this->Openlist->m_list.begin();
+	board* pp; // supportive pointer for search thrue list
+	int size = this->Openlist->m_size;
+
+	for (int i = 0; i < size; i++)
+	{
+		pp = *itr;
+		if (PLeft != nullptr && *pp == *PLeft)
+		{
+			if ((pp->depth) > (PLeft->depth))
+			{
+				pp->depth = PLeft->depth;
+				pp->parent = PLeft->parent;
+			}
+			delete PLeft;
+			PLeft = nullptr;
+		}
+		if (PRight != nullptr && *pp == *PRight)
+		{
+			if ((pp->depth) > (PRight->depth))
+			{
+				pp->depth = PRight->depth;
+				pp->parent = PRight->parent;
+			}
+			delete PRight;
+			PRight = nullptr;
+		}
+		if (PDown != nullptr && *pp == *PDown)
+		{
+			if ((pp->depth) > (PDown->depth))
+			{
+				pp->depth = PDown->depth;
+				pp->parent = PDown->parent;
+			}
+			delete PDown;
+			PDown = nullptr;
+		}
+		if (PUp != nullptr && *pp == *PUp)
+		{
+			if ((pp->depth) > (PUp->depth))
+			{
+				pp->depth = PUp->depth;
+				pp->parent = PUp->parent;
+			}
+			delete PUp;
+			PUp = nullptr;
+		}
+		itr++;
+	}
+}
+
+void Solver::FindSimilar(board* PLeft, board* PRight, board* PDown, board* PUp)
+{
+	std::forward_list <board*>::iterator itr = this->Closedlist->m_list.begin();
+	board* pp;
+	int size = this->Closedlist->m_size;
+	for (int i = 0; i < size; i++)
+	{
+		pp = *itr;
+		if (PLeft != nullptr && *pp == *PLeft)
+		{
+			delete PLeft;
+			PLeft = nullptr;
+		}
+		if (PRight != nullptr && *pp == *PRight)
+		{
+			delete PRight;
+			PRight = nullptr;
+		}
+		if (PDown != nullptr && *pp == *PDown)
+		{
+			delete PDown;
+			PDown = nullptr;
+		}
+		if (PUp != nullptr && *pp == *PUp)
+		{
+			delete PUp;
+			PUp = nullptr;
+		}
+		itr++;
+	}
+
+}
+
+void Solver::PutToOpen(board* PLeft, board* PRight, board* PDown, board* PUp)
+{
+	if (PLeft)
+	{
+		this->Openlist->m_list.push_front(PLeft);
+		this->Openlist->m_size++;
+	}
+	if (PRight)
+	{
+		this->Openlist->m_list.push_front(PRight);
+		this->Openlist->m_size++;
+	}
+	if (PUp)
+	{
+		this->Openlist->m_list.push_front(PUp);
+		this->Openlist->m_size++;
+	}
+	if (PDown)
+	{
+		this->Openlist->m_list.push_front(PDown);
+		this->Openlist->m_size++;
+	}
+}
+
+Solution Solver::solve(std::vector <int> InitialDesk, const int X_width, const int Y_width, Solver solution)
+{
+	////////////////////////////////////////////////// Set goal board
+	solution.GoalBoard = new board(InitialDesk, X_width, Y_width);
+	////////////////////////////////////////////////////////////////////////
+#ifdef debug // for debuging 
+	board* Initial = new board(*solution.debuging(X_width, Y_width), X_width, Y_width);
 #else
-    ////////////////////////////////////////////////////////////////////////
-    board *Initial = new board(InitialDesk, X_width, Y_width);
-    board::create_random(*Initial);
+	////////////////////////////////////////////////////////////////////////
+	board* Initial = new board(InitialDesk, X_width, Y_width);
+	board::create_random(*Initial);
 #endif
-    ////////////////////////////////////////////////// Add random board to open list as a start position
-    if (Initial->is_solvable())
-    {
-        solution.Openlist->AddToHead(*Initial);
-        bool IsSolution = false;                               // search over flag
-        board *OpenP = &solution.Openlist->Head.pNext->m_data; // current board pointer
-        board *PLeft = nullptr;                                // neighboring boards pointers
-        board *PRight = nullptr;
-        board *PDown = nullptr;
-        board *PUp = nullptr;
-        int moves = 0; // moves counter
+	////////////////////////////////////////////////// Add random board to open list as a start position
+	if (Initial->is_solvable())
+	{
+		solution.Openlist->m_list.push_front(Initial);
+		solution.Openlist->m_size++;
+		bool IsSolution = false; // search over flag
+		board* OpenP = *(solution.Openlist->m_list.begin()); // current board pointer
+		OpenP->manhatten = OpenP->manhattan(*solution.GoalBoard);
+		board* PLeft = nullptr; // neighboring boards pointers
+		board* PRight = nullptr;
+		board* PDown = nullptr;
+		board* PUp = nullptr;
+		int moves = 0; // moves counter
 
-        std::cout << "Goal board: \n" << *solution.GoalBoard << "\n";
+		std::cout<< " \n Целевая доска: \n" << *solution.GoalBoard << "\n";
 
-        if (*OpenP == *solution.GoalBoard)
-        {
-            std::cout << "Solution found!"
-                      << "\n";
-            solution.Waylist->AddToTail(*OpenP);
-            IsSolution = true;
-            return *solution.Waylist;
-        }
-        else
-        {
-            do
-            {
-                moves++;
-                std::cout << moves << "\n"; // cout current moves and board
-                std::cout << *OpenP << "\n";
+		if (*OpenP == *solution.GoalBoard) // check if start board is already solved
+		{
+			std::cout << "Solution found!" << "\n";
+			solution.Waylist->m_list.push_front(OpenP);
+			IsSolution = true;
+			return *solution.Waylist;
+		}
+		else
+		{
+			do
+			{
+				moves++;
+				std::cout << "\n" << moves << "\n"; // cout current moves and board
+				std::cout << *OpenP << "\n";
 
-                PLeft = nullptr;
-                PRight = nullptr;
-                PDown = nullptr;
-                PUp = nullptr;
+				PLeft = new board(*OpenP); 
+				PRight = new board(*OpenP);
+				PDown = new board(*OpenP);
+				PUp = new board(*OpenP);
 
-                if (OpenP->zero_y == OpenP->size_y - 1) // lower edge
-                {
-                    if (OpenP->zero_x == OpenP->size_x - 1) // right lower corner
-                    {
-                        PLeft = new board(*OpenP);
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x] =
-                            PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1];
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1] = 0;
-                        PLeft->zero_x = PLeft->zero_x - 1;
-                        PLeft->zero_y = PLeft->zero_y;
-                        PLeft->manhatten = PLeft->manhattan(*solution.GoalBoard);
+				solution.NeighbourFound(OpenP, PLeft, PRight, PDown,  PUp); // locking fo neighbour boards
 
-                        PUp = new board(*OpenP);
-                        PUp->board_field[PUp->zero_y][PUp->zero_x] = PUp->board_field[PUp->zero_y - 1][PUp->zero_x];
-                        PUp->board_field[PUp->zero_y - 1][PUp->zero_x] = 0;
-                        PUp->zero_x = PUp->zero_x;
-                        PUp->zero_y = PUp->zero_y - 1;
-                        PUp->manhatten = PUp->manhattan(*solution.GoalBoard);
-                    }
-                    else if (OpenP->zero_x == 0) // left lower corner
-                    {
-                        PRight = new board(*OpenP);
-                        PRight->board_field[PRight->zero_y][PRight->zero_x] =
-                            PRight->board_field[PRight->zero_y][PRight->zero_x + 1];
-                        PRight->board_field[PRight->zero_y][PRight->zero_x + 1] = 0;
-                        PRight->zero_x = PRight->zero_x + 1;
-                        PRight->zero_y = PRight->zero_y;
-                        PRight->manhatten = PRight->manhattan(*solution.GoalBoard);
+				if (PLeft->board_field.empty())
+				{
+					PLeft = nullptr;
+				}
 
-                        PUp = new board(*OpenP);
-                        PUp->board_field[PUp->zero_y][PUp->zero_x] = PUp->board_field[PUp->zero_y - 1][PUp->zero_x];
-                        PUp->board_field[PUp->zero_y - 1][PUp->zero_x] = 0;
-                        PUp->zero_x = PUp->zero_x;
-                        PUp->zero_y = PUp->zero_y - 1;
-                        PUp->manhatten = PUp->manhattan(*solution.GoalBoard);
-                    }
-                    else // lower midle
-                    {
-                        PLeft = new board(*OpenP);
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x] =
-                            PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1];
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1] = 0;
-                        PLeft->zero_x = PLeft->zero_x - 1;
-                        PLeft->zero_y = PLeft->zero_y;
-                        PLeft->manhatten = PLeft->manhattan(*solution.GoalBoard);
+				if (PRight->board_field.empty())
+				{
+					PRight = nullptr;
+				}
 
-                        PRight = new board(*OpenP);
-                        PRight->board_field[PRight->zero_y][PRight->zero_x] =
-                            PRight->board_field[PRight->zero_y][PRight->zero_x + 1];
-                        PRight->board_field[PRight->zero_y][PRight->zero_x + 1] = 0;
-                        PRight->zero_x = PRight->zero_x + 1;
-                        PRight->zero_y = PRight->zero_y;
-                        PRight->manhatten = PRight->manhattan(*solution.GoalBoard);
+				if (PDown->board_field.empty())
+				{
+					PDown = nullptr;
+				}
 
-                        PUp = new board(*OpenP);
-                        PUp->board_field[PUp->zero_y][PUp->zero_x] = PUp->board_field[PUp->zero_y - 1][PUp->zero_x];
-                        PUp->board_field[PUp->zero_y - 1][PUp->zero_x] = 0;
-                        PUp->zero_x = PUp->zero_x;
-                        PUp->zero_y = PUp->zero_y - 1;
-                        PUp->manhatten = PUp->manhattan(*solution.GoalBoard);
-                    }
-                }
-                else if (OpenP->zero_y == 0) // upper edge
-                {
-                    if (OpenP->zero_x == OpenP->size_x - 1) // right upper corner
-                    {
-                        PLeft = new board(*OpenP);
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x] =
-                            PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1];
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1] = 0;
-                        PLeft->zero_x = PLeft->zero_x - 1;
-                        PLeft->zero_y = PLeft->zero_y;
-                        PLeft->manhatten = PLeft->manhattan(*solution.GoalBoard);
+				if (PUp->board_field.empty())
+				{
+					PUp = nullptr;
+				}
 
-                        PDown = new board(*OpenP);
-                        PDown->board_field[PDown->zero_y][PDown->zero_x] =
-                            PDown->board_field[PDown->zero_y + 1][PDown->zero_x];
-                        PDown->board_field[PDown->zero_y + 1][PDown->zero_x] = 0;
-                        PDown->zero_x = PDown->zero_x;
-                        PDown->zero_y = PDown->zero_y + 1;
-                        PDown->manhatten = PDown->manhattan(*solution.GoalBoard);
-                    }
-                    else if (OpenP->zero_x == 0) // left upper corner
-                    {
-                        PRight = new board(*OpenP);
-                        PRight->board_field[PRight->zero_y][PRight->zero_x] =
-                            PRight->board_field[PRight->zero_y][PRight->zero_x + 1];
-                        PRight->board_field[PRight->zero_y][PRight->zero_x + 1] = 0;
-                        PRight->zero_x = PRight->zero_x + 1;
-                        PRight->zero_y = PRight->zero_y;
-                        PRight->manhatten = PRight->manhattan(*solution.GoalBoard);
+				//////////////////////////////////////////////////////////////////////////////////
+				solution.Closedlist->m_list.push_front(OpenP); // After finding neighboring boards - put the start position in closed list
+				solution.Closedlist->m_size++;
+				solution.Openlist->m_list.remove(OpenP);
+				solution.Openlist->m_size--;
 
-                        PDown = new board(*OpenP);
-                        PDown->board_field[PDown->zero_y][PDown->zero_x] =
-                            PDown->board_field[PDown->zero_y + 1][PDown->zero_x];
-                        PDown->board_field[PDown->zero_y + 1][PDown->zero_x] = 0;
-                        PDown->zero_x = PDown->zero_x;
-                        PDown->zero_y = PDown->zero_y + 1;
-                        PDown->manhatten = PDown->manhattan(*solution.GoalBoard);
-                    }
-                    else // upper midle
-                    {
-                        PLeft = new board(*OpenP);
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x] =
-                            PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1];
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1] = 0;
-                        PLeft->zero_x = PLeft->zero_x - 1;
-                        PLeft->zero_y = PLeft->zero_y;
-                        PLeft->manhatten = PLeft->manhattan(*solution.GoalBoard);
+				solution.SetParent(PLeft, PRight, PDown, PUp); // setting parrent poin for each point found
 
-                        PRight = new board(*OpenP);
-                        PRight->board_field[PRight->zero_y][PRight->zero_x] =
-                            PRight->board_field[PRight->zero_y][PRight->zero_x + 1];
-                        PRight->board_field[PRight->zero_y][PRight->zero_x + 1] = 0;
-                        PRight->zero_x = PRight->zero_x + 1;
-                        PRight->zero_y = PRight->zero_y;
-                        PRight->manhatten = PRight->manhattan(*solution.GoalBoard);
+				std::cout << "\n" << "//////////////////////////////////////////////////////////////////" << "\n";
 
-                        PDown = new board(*OpenP);
-                        PDown->board_field[PDown->zero_y][PDown->zero_x] =
-                            PDown->board_field[PDown->zero_y + 1][PDown->zero_x];
-                        PDown->board_field[PDown->zero_y + 1][PDown->zero_x] = 0;
-                        PDown->zero_x = PDown->zero_x;
-                        PDown->zero_y = PDown->zero_y + 1;
-                        PDown->manhatten = PDown->manhattan(*solution.GoalBoard);
-                    }
-                }
-                else // left edge + right edge + free position
-                {
-                    if (OpenP->zero_x == OpenP->size_x - 1) // right edge
-                    {
-                        PLeft = new board(*OpenP);
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x] =
-                            PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1];
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1] = 0;
-                        PLeft->zero_x = PLeft->zero_x - 1;
-                        PLeft->zero_y = PLeft->zero_y;
-                        PLeft->manhatten = PLeft->manhattan(*solution.GoalBoard);
+				////////////////////////////////////////////////////////////////////////////////////
 
-                        PDown = new board(*OpenP);
-                        PDown->board_field[PDown->zero_y][PDown->zero_x] =
-                            PDown->board_field[PDown->zero_y + 1][PDown->zero_x];
-                        PDown->board_field[PDown->zero_y + 1][PDown->zero_x] = 0;
-                        PDown->zero_x = PDown->zero_x;
-                        PDown->zero_y = PDown->zero_y + 1;
-                        PDown->manhatten = PDown->manhattan(*solution.GoalBoard);
+				if (!solution.Openlist->m_list.empty())
+				{
+					solution.ClosestBoards(PLeft, PRight, PDown, PUp); // Boards checking (Which point is closest?)
+				}
 
-                        PUp = new board(*OpenP);
-                        PUp->board_field[PUp->zero_y][PUp->zero_x] = PUp->board_field[PUp->zero_y - 1][PUp->zero_x];
-                        PUp->board_field[PUp->zero_y - 1][PUp->zero_x] = 0;
-                        PUp->zero_x = PUp->zero_x;
-                        PUp->zero_y = PUp->zero_y - 1;
-                        PUp->manhatten = PUp->manhattan(*solution.GoalBoard);
-                    }
-                    else if (OpenP->zero_x == 0) // left edge
-                    {
-                        PRight = new board(*OpenP);
-                        PRight->board_field[PRight->zero_y][PRight->zero_x] =
-                            PRight->board_field[PRight->zero_y][PRight->zero_x + 1];
-                        PRight->board_field[PRight->zero_y][PRight->zero_x + 1] = 0;
-                        PRight->zero_x = PRight->zero_x + 1;
-                        PRight->zero_y = PRight->zero_y;
-                        PRight->manhatten = PRight->manhattan(*solution.GoalBoard);
+				if (PLeft && PLeft->board_field.empty())
+				{
+					PLeft = nullptr;
+				}
 
-                        PDown = new board(*OpenP);
-                        PDown->board_field[PDown->zero_y][PDown->zero_x] =
-                            PDown->board_field[PDown->zero_y + 1][PDown->zero_x];
-                        PDown->board_field[PDown->zero_y + 1][PDown->zero_x] = 0;
-                        PDown->zero_x = PDown->zero_x;
-                        PDown->zero_y = PDown->zero_y + 1;
-                        PDown->manhatten = PDown->manhattan(*solution.GoalBoard);
+				if (PRight && PRight->board_field.empty())
+				{
+					PRight = nullptr;
+				}
 
-                        PUp = new board(*OpenP);
-                        PUp->board_field[PUp->zero_y][PUp->zero_x] = PUp->board_field[PUp->zero_y - 1][PUp->zero_x];
-                        PUp->board_field[PUp->zero_y - 1][PUp->zero_x] = 0;
-                        PUp->zero_x = PUp->zero_x;
-                        PUp->zero_y = PUp->zero_y - 1;
-                        PUp->manhatten = PUp->manhattan(*solution.GoalBoard);
-                    }
-                    else // free position
-                    {
-                        PLeft = new board(*OpenP);
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x] =
-                            PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1];
-                        PLeft->board_field[PLeft->zero_y][PLeft->zero_x - 1] = 0;
-                        PLeft->zero_x = PLeft->zero_x - 1;
-                        PLeft->zero_y = PLeft->zero_y;
-                        PLeft->manhatten = PLeft->manhattan(*solution.GoalBoard);
+				if (PDown && PDown->board_field.empty())
+				{
+					PDown = nullptr;
+				}
 
-                        PRight = new board(*OpenP);
-                        PRight->board_field[PRight->zero_y][PRight->zero_x] =
-                            PRight->board_field[PRight->zero_y][PRight->zero_x + 1];
-                        PRight->board_field[PRight->zero_y][PRight->zero_x + 1] = 0;
-                        PRight->zero_x = PRight->zero_x + 1;
-                        PRight->zero_y = PRight->zero_y;
-                        PRight->manhatten = PRight->manhattan(*solution.GoalBoard);
+				if (PUp && PUp->board_field.empty())
+				{
+					PUp = nullptr;
+				}
 
-                        PDown = new board(*OpenP);
-                        PDown->board_field[PDown->zero_y][PDown->zero_x] =
-                            PDown->board_field[PDown->zero_y + 1][PDown->zero_x];
-                        PDown->board_field[PDown->zero_y + 1][PDown->zero_x] = 0;
-                        PDown->zero_x = PDown->zero_x;
-                        PDown->zero_y = PDown->zero_y + 1;
-                        PDown->manhatten = PDown->manhattan(*solution.GoalBoard);
+				solution.FindSimilar(PLeft, PRight, PDown, PUp); // Checking for similar points in closed list
 
-                        PUp = new board(*OpenP);
-                        PUp->board_field[PUp->zero_y][PUp->zero_x] = PUp->board_field[PUp->zero_y - 1][PUp->zero_x];
-                        PUp->board_field[PUp->zero_y - 1][PUp->zero_x] = 0;
-                        PUp->zero_x = PUp->zero_x;
-                        PUp->zero_y = PUp->zero_y - 1;
-                        PUp->manhatten = PUp->manhattan(*solution.GoalBoard);
-                    }
-                }
+				if (PLeft && PLeft->board_field.empty())
+				{
+					PLeft = nullptr;
+				}
 
-                //////////////////////////////////////////////////////////////////////////////////
-                solution.Closedlist->AddToHead(
-                    *OpenP); // After finding neighboring descs - put the start position in closed list
-                solution.Openlist->RemoveOne(*OpenP);
+				if (PRight && PRight->board_field.empty())
+				{
+					PRight = nullptr;
+				}
 
-                // setting parrent poin for each point found
-                if (PRight != nullptr)
-                {
-                    PRight->parent = &solution.Closedlist->Head.pNext->m_data;
-                    PRight->depth = PRight->parent->depth + 1;
-                    std::cout << *PRight << "\n";
-                }
-                if (PLeft != nullptr)
-                {
-                    PLeft->parent = &solution.Closedlist->Head.pNext->m_data;
-                    PLeft->depth = PLeft->parent->depth + 1;
-                    std::cout << *PLeft << "\n";
-                }
-                if (PUp != nullptr)
-                {
-                    PUp->parent = &solution.Closedlist->Head.pNext->m_data;
-                    PUp->depth = PUp->parent->depth + 1;
-                    std::cout << *PUp << "\n";
-                }
-                if (PDown != nullptr)
-                {
-                    PDown->parent = &solution.Closedlist->Head.pNext->m_data;
-                    PDown->depth = PDown->parent->depth + 1;
-                    std::cout << *PDown << "\n";
-                }
-                ////////////////////////////////////////////////////////////////////////////////////
+				if (PDown && PDown->board_field.empty())
+				{
+					PDown = nullptr;
+				}
 
-                Node *pp = solution.Openlist->Head.pNext; // supportive pointer for search thrue list
-                while (pp != &solution.Openlist->Tail)    // Points checking (Which point is closest?)
-                {
-                    if (pp->m_data == *PLeft)
-                    {
-                        if ((pp->m_data.depth) > (PLeft->depth))
-                        {
-                            pp->m_data.depth = PLeft->depth;
-                            pp->m_data.parent = PLeft->parent;
-                        }
-                        PLeft = nullptr;
-                    }
-                    if (pp->m_data == *PRight)
-                    {
-                        if ((pp->m_data.depth) > (PRight->depth))
-                        {
-                            pp->m_data.depth = PRight->depth;
-                            pp->m_data.parent = PRight->parent;
-                        }
-                        PRight = nullptr;
-                    }
-                    if (pp->m_data == *PDown)
-                    {
-                        if ((pp->m_data.depth) > (PDown->depth))
-                        {
-                            pp->m_data.depth = PDown->depth;
-                            pp->m_data.parent = PDown->parent;
-                        }
-                        PDown = nullptr;
-                    }
-                    if (pp->m_data == *PUp)
-                    {
-                        if ((pp->m_data.depth) > (PUp->depth))
-                        {
-                            pp->m_data.depth = PUp->depth;
-                            pp->m_data.parent = PUp->parent;
-                        }
-                        PUp = nullptr;
-                    }
-                    pp = pp->pNext;
-                }
+				if (PUp && PUp->board_field.empty())
+				{
+					PUp = nullptr;
+				}
 
-                std::cout << "//////////////////////////////////////////////////////////////////"
-                          << "\n";
+				////////////////////////////////////////////////////////////////////////////////////
 
-                Node *ppc = solution.Closedlist->Head.pNext; // Checking for similar points in close list
-                while (ppc != &solution.Closedlist->Tail)
-                {
-                    if (ppc->m_data == *PLeft)
-                    {
-                        PLeft = nullptr;
-                    }
-                    if (ppc->m_data == *PRight)
-                    {
-                        PRight = nullptr;
-                    }
-                    if (ppc->m_data == *PDown)
-                    {
-                        PDown = nullptr;
-                    }
-                    if (ppc->m_data == *PUp)
-                    {
-                        PUp = nullptr;
-                    }
-                    ppc = ppc->pNext;
-                }
+				solution.PutToOpen(PLeft, PRight, PDown, PUp); // Puting all points that have been found in open list
+			
+				///////////////////////////////////////////// Looking for point with best heuristics
 
-                /////////////////////////////////////////////// Puting all points that have been found in close list
-                if (PLeft)
-                {
-                    solution.Openlist->AddToTail(*PLeft);
-                }
-                if (PRight)
-                {
-                    solution.Openlist->AddToTail(*PRight);
-                }
-                if (PUp)
-                {
-                    solution.Openlist->AddToTail(*PUp);
-                }
-                if (PDown)
-                {
-                    solution.Openlist->AddToTail(*PDown);
-                }
-                ///////////////////////////////////////////// Looking for point with best heuristics
+				std::forward_list <board*>::iterator itr = solution.Openlist->m_list.begin();
+				board* pp;
+				board* BestBoard = *itr;
+				
+				for (int i = 0; i < solution.Openlist->m_size; i++)
+				{
+					pp = *itr;
+					if ((BestBoard->manhatten + BestBoard->depth) >(pp->manhatten + pp->depth))
+					{
+						BestBoard = pp;
+					}
 
-                pp = solution.Openlist->Head.pNext;
-                Node *BestBoard = solution.Openlist->Head.pNext;
+					if (*BestBoard == *solution.GoalBoard) // Checking for equality to goal board
+					{
+						std::cout << "Solution found!" << "\n";
+						std::cout << "Size of open list: " << "\n";
+						std::cout << solution.Openlist->m_size << "\n";
+						board* ppend = pp;
+						do
+						{
+							solution.Waylist->m_list.push_front(ppend);
+							solution.Waylist->m_size++;
+							ppend = ppend->parent;
+						} while (ppend != nullptr);
+						IsSolution = true;
+						return *solution.Waylist;         // If last board is goal - making way list
+					}
+					itr++;
+				}
 
-                while (pp != &solution.Openlist->Tail)
-                {
-                    if ((BestBoard->m_data.manhatten + BestBoard->m_data.depth) >
-                        (pp->m_data.manhatten + pp->m_data.depth))
-                    {
-                        BestBoard = pp;
-                    }
+				if (solution.Openlist->m_size == 0) // If there is no more moves - wrong solveble checking
+				{
+					std::cout << "There is no more moves!" << "\n";
+					return *solution.Waylist;
+				}
 
-                    if (BestBoard->m_data == *solution.GoalBoard) // Checking for equality to goal board
-                    {
-                        std::cout << "Solution found!"
-                                  << "\n";
-                        board *ppend = &pp->m_data;
-                        do
-                        {
-                            solution.Waylist->AddToTail(*ppend);
-                            ppend = ppend->parent;
-                        } while (ppend != nullptr);
-                        IsSolution = true;
-                        return *solution.Waylist; // If last board is goal - making way list
-                    }
-                    pp = pp->pNext;
-                }
+				OpenP = BestBoard;
 
-                if (solution.Openlist->m_size == 0) // If there is no more moves - wrong solveble checking
-                {
-                    std::cout << "There is no more moves!"
-                              << "\n";
-                    return *solution.Waylist;
-                }
+				} while (!IsSolution);
+			}
+		}
+	else
+	{
+		std::cout << *Initial << "\n";
+		std::cout << "There is no solution!" << "\n";
+		return *solution.Waylist;
+	}
 
-                OpenP = &BestBoard->m_data;
-
-            } while (!IsSolution);
-        }
-    }
-    else
-    {
-        std::cout << *Initial << "\n";
-        std::cout << "There is no solution!"
-                  << "\n";
-        return *solution.Waylist;
-    }
 }
 
-void Solver::PrintSolution(const Solution *sol) const
+void Solver::PrintSolution(Solution* sol)
 {
-    sol->moves();
-    Node *pp = sol->Tail.pPrev;
-    while (pp->pPrev)
-    {
-        std::cout << pp->m_data << "\n";
-        pp = pp->pPrev;
-    }
+	sol->moves();
+	std::forward_list <board*>::iterator itr = sol->m_list.begin();
+	board* pp;
+	for (int i = 0; i < sol->m_size; i++)
+	{
+		pp = *itr;
+		std::cout << *pp << "\n";
+		itr++;
+	}
 }

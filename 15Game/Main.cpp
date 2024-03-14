@@ -1,77 +1,54 @@
 #include <tchar.h>
-
 #include <cstdlib>
-#include <ctime>
 #include <iostream>
+#include <vector>
 
 #include "Solver.h"
 
-int main(int argc, char **argv)
+using namespace std;
+
+int _tmain(int argc, _TCHAR* argv[])
 {
-    std::srand(std::time(nullptr));
-    int size_x, size_y;
-    std::cout << "Enter size of board: \n";
-    std::cout << "X width (x < 4 && x >= 1) = \n";
-    std::cin >> size_x;
-    std::cout << "Y width (y < 4 && y >= 1)= \n";
-    std::cin >> size_y;
+	int size_x, size_y;
+	cout << "Enter size of board: \n";
+	cout << "X width (x <= 4 && x >= 1) = \n";
+	cin >> size_x;
+	cout << "Y width (y <= 4 && y >= 1)= \n";
+	cin >> size_y;
 
-    if (size_x < 0)
-    {
-        size_x = 1;
-    }
-    else if (size_x > 4)
-    {
-        size_x = 4;
-    }
+	if (size_x < 1 || size_x > 4)
+	{
+		cout << "Wrong x width! Exiting the program";
+		exit;
+	}
 
-    if (size_y < 0)
-    {
-        size_y = 1;
-    }
-    else if (size_y > 4)
-    {
-        size_y = 4;
-    }
+	if (size_y < 1 || size_y > 4)
+	{
+		cout << "Wrong y width! Exiting the program";
+		exit;
+	}
 
-    int **pp = new int *[size_y];
-    for (int i = 0; i < size_y; i++)
-    {
-        pp[i] = new int[size_x];
-    }
+	{
+		vector <int> initbrd(size_x * size_y);
 
-    int count = 1;
+		for (int i = 0; i < (size_x * size_y) - 1; i++)
+		{
+			initbrd.at(i) = i + 1;
+		}
 
-    for (int i = 0; i < size_y; i++)
-    {
-        for (int j = 0; j < size_x; j++)
-        {
-            pp[i][j] = count;
-            count++;
-        }
-    }
-    pp[size_y - 1][size_x - 1] = 0;
+		for (int i = 0; i < (size_x * size_y); i++)
+		{
+			cout << initbrd.at(i) << " ";
+			if ((i + 1) % size_x == 0)
+			{
+				cout << "\n";
+			}
+		}
 
-    for (int i = 0; i < size_y; i++)
-    {
-        for (int j = 0; j < size_x; j++)
-        {
-            std::cout << pp[i][j] << " ";
-        }
-        std::cout << "\n";
-    }
+		Solver sol1;
+		Solution solution1(Solver::solve(initbrd, size_x, size_y, sol1));
+		sol1.PrintSolution(&solution1);
+	}
 
-    {
-        Solver sol1;
-        Solution solution1(Solver::solve(pp, size_x, size_y, sol1));
-        sol1.PrintSolution(&solution1);
-    }
-
-    for (int i = 0; i < size_y; i++)
-    {
-        delete[] pp[i];
-    }
-    delete[] pp;
-
-    return 0;
+	return 0;
 }
