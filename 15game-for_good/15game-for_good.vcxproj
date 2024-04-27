@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{2393b7bf-1224-4837-beb6-c6a19b647522}</ProjectGuid>
-    <RootNamespace>My15Game</RootNamespace>
+    <ProjectGuid>{275dc384-b6ef-4a42-844b-3a5bc96e5742}</ProjectGuid>
+    <RootNamespace>My15gameforgood</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -128,12 +128,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Board.cpp" />
+    <ClCompile Include="Initializer.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Solution.cpp" />
     <ClCompile Include="Solver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h" />
+    <ClInclude Include="Initializer.h" />
     <ClInclude Include="Solution.h" />
     <ClInclude Include="Solver.h" />
   </ItemGroup>
