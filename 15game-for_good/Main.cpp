@@ -5,6 +5,7 @@
 
 #include "Initializer.h"
 #include "Solver.h"
+#include "SimpleTimer.h"
 
 int _tmain(int argc, _TCHAR *argv[])
 {
@@ -29,6 +30,8 @@ int _tmain(int argc, _TCHAR *argv[])
                 return 0;
             }
         }
+
+        SimpleTimer st;
 
         {
             Solver sol1;

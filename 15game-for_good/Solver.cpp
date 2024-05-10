@@ -1,5 +1,5 @@
 #include "Solver.h"
-// #define debug
+#define debug
 
 Solver::Solver()
 {
@@ -27,15 +27,15 @@ board Solver::debuging(const board &InitialDesk) // this is for debugging
 
     if (X_width * Y_width == 9)
     {
-        debbrd[0] = 1;
-        debbrd[1] = 2;
-        debbrd[2] = 3;
-        debbrd[3] = 4;
-        debbrd[4] = 5;
-        debbrd[5] = 0;
-        debbrd[6] = 7;
-        debbrd[7] = 8;
-        debbrd[8] = 6;
+        debbrd[0] = 3;
+        debbrd[1] = 5;
+        debbrd[2] = 6;
+        debbrd[3] = 1;
+        debbrd[4] = 8;
+        debbrd[5] = 2;
+        debbrd[6] = 0;
+        debbrd[7] = 7;
+        debbrd[8] = 4;
     }
 
     if (X_width * Y_width == 6)
@@ -100,7 +100,7 @@ void Solver::DownNeighbour(board &brd, const board &goal)
     brd.getManh() = brd.manhattan(goal);
 }
 
-void Solver::LowerEdge(std::vector<board *> boardsvec, const board &goal)
+void Solver::LowerEdge(std::vector<board *>& boardsvec, const board &goal)
 {
     if (boardsvec[0]->zerox() == boardsvec[0]->width() - 1) // right lower corner
     {
@@ -130,7 +130,7 @@ void Solver::LowerEdge(std::vector<board *> boardsvec, const board &goal)
     }
 }
 
-void Solver::UpperEdge(std::vector<board *> boardsvec, const board &goal)
+void Solver::UpperEdge(std::vector<board *>& boardsvec, const board &goal)
 {
     if (boardsvec[0]->zerox() == boardsvec[0]->width() - 1) // right upper corner
     {
@@ -160,7 +160,7 @@ void Solver::UpperEdge(std::vector<board *> boardsvec, const board &goal)
     }
 }
 
-void Solver::LRFPossition(std::vector<board *> boardsvec, const board &goal)
+void Solver::LRFPossition(std::vector<board *>& boardsvec, const board &goal)
 {
     if (boardsvec[0]->zerox() == boardsvec[0]->width() - 1) // right edge
     {
@@ -184,12 +184,12 @@ void Solver::LRFPossition(std::vector<board *> boardsvec, const board &goal)
     {
         LeftNeighbour(*boardsvec[1], goal);
         RightNeighbour(*boardsvec[2], goal);
-        UpNeighbour(*boardsvec[3], goal);
-        DownNeighbour(*boardsvec[4], goal);
+        UpNeighbour(*boardsvec[4], goal);
+        DownNeighbour(*boardsvec[3], goal);
     }
 }
 
-void Solver::NeighbourFound(std::vector<board *> boardsvec, const board &goal)
+void Solver::NeighbourFound(std::vector<board *>& boardsvec, const board &goal)
 {
     if (boardsvec[0]->zeroy() == boardsvec[0]->height() - 1) // lower edge
     {
@@ -205,7 +205,7 @@ void Solver::NeighbourFound(std::vector<board *> boardsvec, const board &goal)
     }
 }
 
-void Solver::SetParent(std::vector<board *> boardsvec)
+void Solver::SetParent(std::vector<board*>& boardsvec)
 {
     std::vector<board *>::iterator itr = boardsvec.begin() + 1;
     while (itr != boardsvec.end())
@@ -220,7 +220,7 @@ void Solver::SetParent(std::vector<board *> boardsvec)
     }
 }
 
-void Solver::FindSimilar(std::vector<board *> boardsvec)
+void Solver::FindSimilar(std::vector<board *>& boardsvec)
 {
     std::vector<board *>::iterator itrcl = begin(Closedlist);
 
@@ -239,7 +239,7 @@ void Solver::FindSimilar(std::vector<board *> boardsvec)
     }
 }
 
-void Solver::PutToOpen(std::vector<board *> boardsvec)
+void Solver::PutToOpen(std::vector<board *>& boardsvec)
 {
 
     std::vector<board *>::iterator itr = boardsvec.begin() + 1;
