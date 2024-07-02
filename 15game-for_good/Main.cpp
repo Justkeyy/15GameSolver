@@ -31,7 +31,7 @@ int _tmain(int argc, _TCHAR *argv[])
             }
         }
 
-        SimpleTimer st;
+//        SimpleTimer st;
 
         {
             Solver sol1;

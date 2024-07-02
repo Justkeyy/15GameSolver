@@ -14,58 +14,63 @@ board Solver::debuging(const board &InitialDesk) // this is for debugging
     std::vector<int> debbrd;
     int X_width = InitialDesk.width();
     int Y_width = InitialDesk.height();
+    int size = X_width * Y_width;
 
-    debbrd.resize(X_width * Y_width);
+    debbrd.resize(size);
 
-    if (X_width * Y_width == 4)
+    switch (size)
     {
-        debbrd[0] = 2;
-        debbrd[1] = 0;
-        debbrd[2] = 1;
-        debbrd[3] = 3;
-    }
-
-    if (X_width * Y_width == 9)
-    {
-        debbrd[0] = 3;
-        debbrd[1] = 5;
-        debbrd[2] = 6;
-        debbrd[3] = 1;
-        debbrd[4] = 8;
-        debbrd[5] = 2;
-        debbrd[6] = 0;
-        debbrd[7] = 7;
-        debbrd[8] = 4;
-    }
-
-    if (X_width * Y_width == 6)
-    {
-        debbrd[0] = 0;
-        debbrd[1] = 2;
-        debbrd[2] = 5;
-        debbrd[3] = 1;
-        debbrd[4] = 3;
-        debbrd[5] = 4;
-    }
-
-    if (X_width * Y_width == 16)
-    {
-        debbrd[0] = 1;
-        debbrd[1] = 2;
-        debbrd[2] = 3;
-        debbrd[3] = 4;
-        debbrd[4] = 5;
-        debbrd[5] = 6;
-        debbrd[6] = 7;
-        debbrd[7] = 8;
-        debbrd[8] = 9;
-        debbrd[9] = 10;
-        debbrd[10] = 11;
-        debbrd[11] = 12;
-        debbrd[12] = 15;
-        debbrd[13] = 13;
-        debbrd[14] = 14;
-        debbrd[15] = 0;
+        case 4:
+        {
+            debbrd[0] = 2;
+            debbrd[1] = 0;
+            debbrd[2] = 1;
+            debbrd[3] = 3;
+            break;
+        }
+        case 6:
+        {
+            debbrd[0] = 0;
+            debbrd[1] = 2;
+            debbrd[2] = 5;
+            debbrd[3] = 1;
+            debbrd[4] = 3;
+            debbrd[5] = 4;
+            break;
+        }
+        case 9:
+        {
+            debbrd[0] = 3;
+            debbrd[1] = 5;
+            debbrd[2] = 6;
+            debbrd[3] = 1;
+            debbrd[4] = 8;
+            debbrd[5] = 2;
+            debbrd[6] = 0;
+            debbrd[7] = 7;
+            debbrd[8] = 4;
+            break;
+        }
+        case 16:
+        {
+            debbrd[0] = 1;
+            debbrd[1] = 2;
+            debbrd[2] = 3;
+            debbrd[3] = 4;
+            debbrd[4] = 5;
+            debbrd[5] = 6;
+            debbrd[6] = 7;
+            debbrd[7] = 8;
+            debbrd[8] = 9;
+            debbrd[9] = 10;
+            debbrd[10] = 11;
+            debbrd[11] = 12;
+            debbrd[12] = 15;
+            debbrd[13] = 13;
+            debbrd[14] = 14;
+            debbrd[15] = 0;
+            break;
+        }
     }
 
     board brd(debbrd, X_width, Y_width);
