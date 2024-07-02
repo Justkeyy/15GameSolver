@@ -1,3 +1,5 @@
+# 15 Game Solver
+
 Use this code as an exemple of A* algorithm for solving 15 game!
 
 You can solve random generated desks or prepare your own desk variants. 
